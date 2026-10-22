@@ -25,13 +25,14 @@ class ErrorNoRecuperable extends Error {}
 export const FALLBACK_MODELS = [
   'gemini-3.5-flash',
   'gemini-3.6-flash', // en la prueba del 2026-10-01 respondió completo en ~8 s mientras los demás estaban saturados
+  'gemini-3.7-flash',
   'gemini-3.8-flash',
   'gemini-flash-latest',
   'gemini-3-flash-preview',
 ];
 
 /** Estados temporales: vale la pena reintentar el mismo modelo tras una espera. */
-const ESTADOS_TEMPORALES = new Set([429, 500, 503]);
+const ESTADOS_TEMPORALES = new Set([429, 500, 502, 503]);
 const INTENTOS_POR_MODELO = 2;
 const ESPERA_BASE_MS = 4000;
 const ESPERA_MAXIMA_MS = 20000;
@@ -571,6 +572,7 @@ function esperaSugeridaMs(respuesta: Response, cuerpo: string): number | null {
 const DESCRIPCION_ESTADO: Record<string, string> = {
   '429': 'sin cuota disponible (429)',
   '500': 'con error interno (500)',
+  '502': 'con error de gateway (502)',
   '503': 'saturado (503)',
   '404': 'no disponible (404)',
   tiempo: 'sin respuesta a tiempo',
@@ -641,7 +643,7 @@ export async function consultarGemini(
       }
       if (!ESTADOS_TEMPORALES.has(respuesta.status)) {
         // 400, 401, 403…: clave inválida o solicitud rechazada; otro modelo no lo resolvería
-        throw new ErrorNoRecuperable(`Gemini rechazó la solicitud (${respuesta.status}): ${errorTexto.slice(0, 300)}`);
+        throw new ErrorNoRecuperable(`Gemini rechazó la solicitud (${respuesta.status}): ${errorTexto.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200)}`);
       }
 
       resultados.push({ modelo, estado: String(respuesta.status) });
