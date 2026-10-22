@@ -12,7 +12,9 @@ import { join, extname } from 'node:path';
 import { crearMiddlewareApi } from './api';
 
 const PORT = Number(process.env.PORT) || 3000;
-const DIST = join(import.meta.dirname ?? new URL('.', import.meta.url).pathname.slice(1), '..', 'dist');
+// __dirname se inyecta por el banner de esbuild en producción; en dev lo resuelve Node
+const dir = typeof __dirname !== 'undefined' ? __dirname : new URL('.', import.meta.url).pathname;
+const DIST = join(dir, '..', 'dist');
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
