@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:prod": "tsc && vite build && tsc -p tsconfig.server.json",
+    "start": "node dist-server/production.js",
     "preview": "vite preview",
     "test": "vitest run"
   },
